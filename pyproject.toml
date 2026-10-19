@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "seekpeek"
+version = "0.1.0"
+description = "MCP server that gives any AI agent live web access, powered by the DeepSeek Search & Fetch API."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["mcp", "model-context-protocol", "deepseek", "search", "web-search", "fetch", "rag", "agent"]
+authors = [{ name = "seekpeek contributors" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+dependencies = [
+  "mcp>=2.3,<3",
+  "httpx2>=2.10",
+  "pydantic>=2.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/penn0312/seekpeek"
+Repository = "https://github.com/penn0312/seekpeek"
+Issues = "https://github.com/penn0312/seekpeek/issues"
+Changelog = "https://github.com/penn0312/seekpeek/blob/main/CHANGELOG.md"
+
+[project.scripts]
+seekpeek = "seekpeek.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.25",
+  "ruff>=0.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/seekpeek"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "C4", "PT"]
+ignore = ["SIM108", "RUF001", "RUF002", "RUF003"]  # ambiguous-unicode: intentional CJK and typographic dashes
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
