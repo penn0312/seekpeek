@@ -26,6 +26,7 @@ dependencies = [
   "mcp>=2.3,<3",
   "httpx2>=2.10",
   "pydantic>=2.12",
+  "python-dotenv>=1.0",
 ]
 
 [project.urls]

@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `.env` support in the CLI: a key is read from `SEEKPEEK_ENV_FILE`, the nearest `.env` above the
+  working directory, or `~/.config/seekpeek/.env` (real environment variables still win). One file
+  now serves every MCP host and the CLI, whatever directory the host launches from.
+
 ## [0.1.0] — 2026-10-19
 
 First public release.

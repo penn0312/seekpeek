@@ -10,9 +10,9 @@ KEYS_URL = "https://platform.deepseek.com/api_keys"
 BILLING_URL = "https://platform.deepseek.com/top_up"
 
 MISSING_KEY_HINT = (
-    "DEEPSEEK_API_KEY is not set. Create a key at https://platform.deepseek.com/api_keys, "
-    "then pass it to seekpeek through your MCP host's `env` block, e.g.\n"
-    '  "env": { "DEEPSEEK_API_KEY": "sk-..." }'
+    "DEEPSEEK_API_KEY is not set. Put it in ~/.config/seekpeek/.env "
+    "(or a .env in the working directory, or your MCP host's `env` block). "
+    "Create a key at https://platform.deepseek.com/api_keys, then restart the server."
 )
 
 

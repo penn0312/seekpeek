@@ -209,6 +209,26 @@ Passed straight through to DeepSeek; combine as many operators as you like in on
 | `SEEKPEEK_MAX_RETRIES` | `2` | Retries on `408` / `429` / `5xx` |
 | `SEEKPEEK_SEARCH_QPS` | `5` | Client-side search rate limit |
 | `SEEKPEEK_FETCH_QPS` | `5` | Client-side fetch rate limit |
+| `SEEKPEEK_ENV_FILE` | — | Extra `.env` file to read, highest priority |
+
+### Where to put the API key
+
+Any of these works; the first one that is set wins:
+
+| Where | Best for | Notes |
+| --- | --- | --- |
+| `~/.config/seekpeek/.env` | Everything | One file, picked up whatever directory the host launches from |
+| `./.env` in your working directory | Local development | Searched from the current directory upwards |
+| `SEEKPEEK_ENV_FILE=/path/to/file` | Multiple keys / CI | Explicit override |
+| Your host's `env` block or `export` | Hosts that manage secrets | Real environment variables always win over `.env` |
+
+```bash
+# one-time setup
+mkdir -p ~/.config/seekpeek
+echo 'DEEPSEEK_API_KEY=sk-your-key' > ~/.config/seekpeek/.env
+chmod 600 ~/.config/seekpeek/.env
+seekpeek doctor
+```
 
 `seekpeek doctor` prints the effective configuration and probes the API:
 

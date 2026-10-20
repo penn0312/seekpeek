@@ -206,6 +206,26 @@ blocked by the site, served as an unsupported content type, or contain no extrac
 | `SEEKPEEK_MAX_RETRIES` | `2` | `408` / `429` / `5xx` 的重试次数 |
 | `SEEKPEEK_SEARCH_QPS` | `5` | 客户端搜索限速 |
 | `SEEKPEEK_FETCH_QPS` | `5` | 客户端抓取限速 |
+| `SEEKPEEK_ENV_FILE` | — | 额外指定 `.env` 文件，优先级最高 |
+
+### Key 放在哪里
+
+下面几种都行，**已经设置的值优先**（真实环境变量 > `.env`）：
+
+| 位置 | 适用场景 | 说明 |
+| --- | --- | --- |
+| `~/.config/seekpeek/.env` | 所有场景 | 只配一次，宿主从任何目录启动都能读到 |
+| 工作目录的 `./.env` | 本地开发 | 会从当前目录向上查找 |
+| `SEEKPEEK_ENV_FILE=/path/to/file` | 多 Key / CI | 显式指定 |
+| 宿主的 `env` 块或 `export` | 宿主集中管理密钥 | 真实环境变量永远优先于 `.env` |
+
+```bash
+# 一次性配置
+mkdir -p ~/.config/seekpeek
+echo 'DEEPSEEK_API_KEY=sk-your-key' > ~/.config/seekpeek/.env
+chmod 600 ~/.config/seekpeek/.env
+seekpeek doctor
+```
 
 `seekpeek doctor` 会打印生效配置并探活一次：
 

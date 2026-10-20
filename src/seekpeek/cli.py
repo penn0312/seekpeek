@@ -11,8 +11,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
+from pathlib import Path
 from typing import Literal
+
+from dotenv import find_dotenv, load_dotenv
 
 from seekpeek import __version__
 from seekpeek.client import DeepSeekClient
@@ -27,11 +31,32 @@ from seekpeek.formatting import (
 )
 
 PROGRAM = "seekpeek"
+GLOBAL_ENV_FILE = Path.home() / ".config" / "seekpeek" / ".env"
 
 LOOKS_UNCONFIGURED = (
     "{program}: DEEPSEEK_API_KEY is not set — every tool call will explain this until you provide one.\n"
-    "           Create a key at https://platform.deepseek.com/api_keys and add it to your host's env block.\n"
+    "           Put it in {env_file} (or your MCP host's env block).\n"
+    "           Create a key at https://platform.deepseek.com/api_keys\n"
 )
+
+
+def load_env_files() -> None:
+    """Load a key from .env files without overriding the real environment.
+
+    First match wins: `SEEKPEEK_ENV_FILE`, then the nearest `.env` above the current
+    directory (local development), then `~/.config/seekpeek/.env` (works for every
+    host, whatever directory it launches the server from).
+    """
+    candidates: list[Path] = []
+    if explicit := os.environ.get("SEEKPEEK_ENV_FILE"):
+        candidates.append(Path(explicit).expanduser())
+    if found := find_dotenv(usecwd=True):
+        candidates.append(Path(found))
+    candidates.append(GLOBAL_ENV_FILE)
+
+    for path in candidates:
+        if path.is_file():
+            load_dotenv(path, override=False)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -151,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    load_env_files()
     try:
         settings = Settings.from_env()
     except Exception as exc:  # ConfigError
@@ -160,7 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         from seekpeek.server import build_server
 
         if not settings.api_key:
-            print(LOOKS_UNCONFIGURED.format(program=PROGRAM), file=sys.stderr)
+            print(LOOKS_UNCONFIGURED.format(program=PROGRAM, env_file=GLOBAL_ENV_FILE), file=sys.stderr)
         server = build_server()
         transport: Literal["stdio", "sse", "streamable-http"] = args.transport
         if transport == "stdio":

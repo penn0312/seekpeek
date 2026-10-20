@@ -8,6 +8,14 @@ from seekpeek.cli import main
 from tests.conftest import build_client, error_response, json_response, search_payload
 
 
+@pytest.fixture(autouse=True)
+def isolated_env(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """Keep tests hermetic: no real ~/.config/seekpeek/.env, no .env found by walking up."""
+    monkeypatch.setattr("seekpeek.cli.GLOBAL_ENV_FILE", tmp_path / "missing-global.env")
+    monkeypatch.delenv("SEEKPEEK_ENV_FILE", raising=False)
+    monkeypatch.setattr("seekpeek.cli.find_dotenv", lambda **_: "")
+
+
 @pytest.fixture
 def no_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
@@ -16,6 +24,42 @@ def no_key(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture
 def with_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-cli-test")
+
+
+def test_env_file_supplies_the_key(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    env_file = tmp_path / "seekpeek.env"
+    env_file.write_text("DEEPSEEK_API_KEY=sk-from-file\n")
+    monkeypatch.setenv("SEEKPEEK_ENV_FILE", str(env_file))
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+
+    assert main(["doctor", "--offline"]) == 0
+    assert "sk-fro…file" in capsys.readouterr().out
+
+
+def test_global_env_file_is_the_fallback(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    global_file = tmp_path / "global.env"
+    global_file.write_text("DEEPSEEK_API_KEY=sk-global-key\n")
+    monkeypatch.setattr("seekpeek.cli.GLOBAL_ENV_FILE", global_file)
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+
+    assert main(["doctor", "--offline"]) == 0
+    assert "sk-glo…-key" in capsys.readouterr().out
+
+
+def test_real_environment_wins_over_env_file(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    env_file = tmp_path / "seekpeek.env"
+    env_file.write_text("DEEPSEEK_API_KEY=sk-from-file\n")
+    monkeypatch.setenv("SEEKPEEK_ENV_FILE", str(env_file))
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-from-env")
+
+    assert main(["doctor", "--offline"]) == 0
+    assert "sk-fro…-env" in capsys.readouterr().out
 
 
 def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
